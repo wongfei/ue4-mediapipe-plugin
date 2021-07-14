@@ -1,0 +1,61 @@
+
+input_stream: "input_video"
+output_stream: "face_landmarks"
+output_stream: "face_landmarks_presence"
+output_stream: "output_video"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:input_image_size"
+}
+
+#
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:num_faces"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { int_value: 1 }
+    }
+  }
+}
+
+node {
+  calculator: "FaceLandmarkFrontCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_side_packet: "NUM_FACES:num_faces"
+  output_stream: "DETECTIONS:face_detections"
+  output_stream: "LANDMARKS:face_landmarks"
+  output_stream: "ROIS_FROM_DETECTIONS:face_rects_from_detections"
+  output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:face_landmarks"
+  output_stream: "PRESENCE:face_landmarks_presence"
+}
+
+#
+
+node {
+  calculator: "FaceRendererCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "DETECTIONS:face_detections"
+  input_stream: "LANDMARKS:face_landmarks"
+  input_stream: "NORM_RECTS:face_rects_from_landmarks"
+  output_stream: "IMAGE:output_video"
+}

@@ -1,0 +1,23 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "EngineVersion": "4.26.0",
+  "VersionName": "0.1",
+  "FriendlyName": "MediaPipe",
+  "Description": "Unreal MediaPipe integration",
+  "CreatedBy": "wongfei",
+  "CreatedByURL": "https://github.com/wongfei",
+  "DocsURL": "",
+  "MarketplaceURL" : "",
+  "Category": "Media",
+  "CanContainContent": true,
+  "Installed": true,
+  "Modules": [
+    {
+      "Name": "MediaPipe",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "WhitelistPlatforms": [ "Win64" ]
+    }
+  ]
+}

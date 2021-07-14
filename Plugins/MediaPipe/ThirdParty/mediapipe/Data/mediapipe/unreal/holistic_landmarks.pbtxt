@@ -1,0 +1,87 @@
+
+input_stream: "input_video"
+output_stream: "output_video"
+
+output_stream: "POSE_LANDMARKS:pose_landmarks"
+output_stream: "FACE_LANDMARKS:face_landmarks"
+output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+  node_options: {
+    [type.googleapis.com/mediapipe.FlowLimiterCalculatorOptions] {
+      max_in_flight: 1
+      max_in_queue: 1
+      # Timeout is disabled (set to 0) as first frame processing can take more
+      # than 1 second.
+      in_flight_timeout: 0
+    }
+  }
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:image_size"
+}
+
+node {
+  calculator: "HolisticLandmarkCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "POSE_LANDMARKS:pose_landmarks"
+  output_stream: "POSE_ROI:pose_roi"
+  output_stream: "POSE_DETECTION:pose_detection"
+  output_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+  output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:pose_landmarks"
+  output_stream: "PRESENCE:pose_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:face_landmarks"
+  output_stream: "PRESENCE:face_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:left_hand_landmarks"
+  output_stream: "PRESENCE:left_hand_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:right_hand_landmarks"
+  output_stream: "PRESENCE:right_hand_landmarks_presence"
+}
+
+node {
+  calculator: "HolisticTrackingToRenderData"
+  input_stream: "IMAGE_SIZE:image_size"
+  input_stream: "POSE_LANDMARKS:pose_landmarks"
+  input_stream: "POSE_ROI:pose_roi"
+  input_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+  input_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+  input_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "RENDER_DATA_VECTOR:render_data_vector"
+}
+
+node {
+  calculator: "AnnotationOverlayCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "VECTOR:render_data_vector"
+  output_stream: "IMAGE:output_video"
+}

@@ -1,0 +1,64 @@
+
+input_stream: "input_video"
+output_stream: "hand_landmarks"
+output_stream: "hand_landmarks_presence"
+output_stream: "output_video"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:input_image_size"
+}
+
+#
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:num_hands"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { int_value: 2 }
+    }
+  }
+}
+
+node {
+  calculator: "HandLandmarkTrackingCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_side_packet: "NUM_HANDS:num_hands"
+  output_stream: "PALM_DETECTIONS:palm_detections"
+  output_stream: "LANDMARKS:hand_landmarks"
+  output_stream: "HANDEDNESS:handedness"
+  output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:palm_rects_from_detections"
+  output_stream: "HAND_ROIS_FROM_LANDMARKS:hand_rects_from_landmarks"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:hand_landmarks"
+  output_stream: "PRESENCE:hand_landmarks_presence"
+}
+
+#
+
+node {
+  calculator: "HandRendererSubgraph"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "DETECTIONS:palm_detections"
+  input_stream: "LANDMARKS:hand_landmarks"
+  input_stream: "HANDEDNESS:handedness"
+  input_stream: "NORM_RECTS:0:palm_rects_from_detections"
+  input_stream: "NORM_RECTS:1:hand_rects_from_landmarks"
+  output_stream: "IMAGE:output_video"
+}

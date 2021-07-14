@@ -1,0 +1,56 @@
+
+input_stream: "input_video"
+output_stream: "pose_landmarks"
+output_stream: "pose_world_landmarks"
+output_stream: "output_video"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:input_image_size"
+}
+
+#
+
+node {
+  calculator: "PoseLandmarkCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "DETECTION:pose_detections"
+  output_stream: "LANDMARKS:pose_landmarks"
+  output_stream: "ROI_FROM_LANDMARKS:pose_rects_from_landmarks"
+  output_stream: "WORLD_LANDMARKS:pose_world_landmarks"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:pose_landmarks"
+  output_stream: "PRESENCE:pose_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:pose_world_landmarks"
+  output_stream: "PRESENCE:pose_world_landmarks_presence"
+}
+
+#
+
+node {
+  calculator: "PoseRendererCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "DETECTION:pose_detections"
+  input_stream: "LANDMARKS:pose_landmarks"
+  input_stream: "ROI:pose_rects_from_landmarks"
+  output_stream: "IMAGE:output_video"
+}
