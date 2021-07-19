@@ -1,0 +1,34 @@
+
+output_stream: "multi_face_geometry"
+output_stream: "multi_face_geometry_presence"
+
+node {
+  calculator: "FaceGeometryEnvGeneratorCalculator"
+  output_side_packet: "ENVIRONMENT:environment"
+  node_options: {
+    [type.googleapis.com/mediapipe.FaceGeometryEnvGeneratorCalculatorOptions] {
+      environment: {
+        origin_point_location: TOP_LEFT_CORNER
+        perspective_camera: {
+          vertical_fov_degrees: 63.0
+          near: 1.0 # 1cm
+          far: 10000.0 # 100m
+        }
+      }
+    }
+  }
+}
+
+node {
+  calculator: "FaceGeometryFromLandmarks"
+  input_stream: "IMAGE_SIZE:input_image_size"
+  input_side_packet: "ENVIRONMENT:environment"
+  input_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
+  output_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:multi_face_geometry"
+  output_stream: "PRESENCE:multi_face_geometry_presence"
+}

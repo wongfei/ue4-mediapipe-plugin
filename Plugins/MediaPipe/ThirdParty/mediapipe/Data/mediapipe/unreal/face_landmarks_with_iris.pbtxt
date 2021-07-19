@@ -1,0 +1,163 @@
+
+input_stream: "input_video"
+output_stream: "output_video"
+
+output_stream: "multi_face_landmarks"
+output_stream: "multi_face_landmarks_presence"
+
+output_stream: "left_eye_contour_landmarks"
+output_stream: "left_iris_landmarks"
+output_stream: "left_eye_rect_from_landmarks"
+
+output_stream: "right_eye_contour_landmarks"
+output_stream: "right_iris_landmarks"
+output_stream: "right_eye_rect_from_landmarks"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:input_image_size"
+}
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:num_faces"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { int_value: 1 }
+    }
+  }
+}
+
+node {
+  calculator: "FaceLandmarkFrontCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_side_packet: "NUM_FACES:num_faces"
+  output_stream: "LANDMARKS:multi_face_landmarks"
+  output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"
+  output_stream: "DETECTIONS:face_detections"
+  output_stream: "ROIS_FROM_DETECTIONS:face_rects_from_detections"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:multi_face_landmarks"
+  output_stream: "PRESENCE:multi_face_landmarks_presence"
+}
+
+node {
+  calculator: "SplitNormalizedLandmarkListVectorCalculator"
+  input_stream: "multi_face_landmarks"
+  output_stream: "face_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 0 end: 1 }
+      element_only: true
+    }
+  }
+}
+
+node {
+  calculator: "SplitNormalizedRectVectorCalculator"
+  input_stream: "face_rects_from_landmarks"
+  output_stream: "face_rect"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 0 end: 1 }
+      element_only: true
+    }
+  }
+}
+
+node {
+  calculator: "SplitNormalizedLandmarkListCalculator"
+  input_stream: "face_landmarks"
+  output_stream: "left_eye_boundary_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 33 end: 34 }
+      ranges: { begin: 133 end: 134 }
+      combine_outputs: true
+    }
+  }
+}
+
+node {
+  calculator: "SplitNormalizedLandmarkListCalculator"
+  input_stream: "face_landmarks"
+  output_stream: "right_eye_boundary_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 362 end: 363 }
+      ranges: { begin: 263 end: 264 }
+      combine_outputs: true
+    }
+  }
+}
+
+node {
+  calculator: "IrisLandmarkLeftAndRightCpu"
+  input_stream: "IMAGE:input_video"
+  input_stream: "LEFT_EYE_BOUNDARY_LANDMARKS:left_eye_boundary_landmarks"
+  input_stream: "RIGHT_EYE_BOUNDARY_LANDMARKS:right_eye_boundary_landmarks"
+  output_stream: "LEFT_EYE_CONTOUR_LANDMARKS:left_eye_contour_landmarks"
+  output_stream: "LEFT_EYE_IRIS_LANDMARKS:left_iris_landmarks"
+  output_stream: "LEFT_EYE_ROI:left_eye_rect_from_landmarks"
+  output_stream: "RIGHT_EYE_CONTOUR_LANDMARKS:right_eye_contour_landmarks"
+  output_stream: "RIGHT_EYE_IRIS_LANDMARKS:right_iris_landmarks"
+  output_stream: "RIGHT_EYE_ROI:right_eye_rect_from_landmarks"
+}
+
+node {
+  calculator: "ConcatenateNormalizedLandmarkListCalculator"
+  input_stream: "left_eye_contour_landmarks"
+  input_stream: "right_eye_contour_landmarks"
+  output_stream: "refined_eye_landmarks"
+}
+
+node {
+  calculator: "UpdateFaceLandmarksCalculator"
+  input_stream: "NEW_EYE_LANDMARKS:refined_eye_landmarks"
+  input_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "UPDATED_FACE_LANDMARKS:updated_face_landmarks"
+}
+
+node {
+  calculator: "IrisRendererCpu"
+  input_stream: "IMAGE:input_video"
+  input_stream: "FACE_LANDMARKS:updated_face_landmarks"
+  input_stream: "EYE_LANDMARKS_LEFT:left_eye_contour_landmarks"
+  input_stream: "EYE_LANDMARKS_RIGHT:right_eye_contour_landmarks"
+  input_stream: "IRIS_LANDMARKS_LEFT:left_iris_landmarks"
+  input_stream: "IRIS_LANDMARKS_RIGHT:right_iris_landmarks"
+  input_stream: "NORM_RECT:face_rect"
+  input_stream: "LEFT_EYE_RECT:left_eye_rect_from_landmarks"
+  input_stream: "RIGHT_EYE_RECT:right_eye_rect_from_landmarks"
+  input_stream: "DETECTIONS:face_detections"
+  output_stream: "IRIS_LANDMARKS:iris_landmarks"
+  output_stream: "IMAGE:output_video"
+}
+
+node {
+  calculator: "ConcatenateNormalizedLandmarkListCalculator"
+  input_stream: "updated_face_landmarks"
+  input_stream: "iris_landmarks"
+  output_stream: "face_landmarks_with_iris"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:face_landmarks_with_iris"
+  output_stream: "PRESENCE:face_landmarks_with_iris_presence"
+}
