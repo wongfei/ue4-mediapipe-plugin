@@ -128,8 +128,12 @@ bool UMediaPipePipelineComponent::Start()
 	}
 
 	Impl->SetGraphConfiguration(TCHAR_TO_ANSI(*ConfigStr));
-	Impl->SetCaptureParams(CameraId, CaptureApi, ResX, ResY, Fps);
 	Impl->SetOverlay(bEnableOverlay);
+
+	if (InputFile.IsEmpty())
+		Impl->SetCaptureParams(CameraId, CaptureApi, ResX, ResY, Fps);
+	else
+		Impl->SetCaptureFromFile(TCHAR_TO_ANSI(*InputFile));
 
 	if (bAutoBindObservers)
 	{

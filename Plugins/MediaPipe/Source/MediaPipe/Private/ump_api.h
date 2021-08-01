@@ -59,6 +59,7 @@ class IUmpPipeline : public IUmpObject
 {
 public:
 	virtual void SetGraphConfiguration(const char* filename) = 0;
+	virtual void SetCaptureFromFile(const char* filename) = 0;
 	virtual void SetCaptureParams(int cam_id, int cam_api, int cam_resx, int cam_resy, int cam_fps) = 0;
 	virtual void SetOverlay(bool overlay) = 0;
 	virtual class IUmpObserver* CreateObserver(const char* stream_name) = 0;

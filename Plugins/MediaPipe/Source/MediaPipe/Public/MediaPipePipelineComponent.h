@@ -41,6 +41,9 @@ public:
 	// Capture config
 
 	UPROPERTY(Category="MediaPipe|Capture", BlueprintReadWrite, EditAnywhere)
+	FString InputFile;
+
+	UPROPERTY(Category="MediaPipe|Capture", BlueprintReadWrite, EditAnywhere)
 	int CameraId = 0;
 
 	UPROPERTY(Category="MediaPipe|Capture", BlueprintReadWrite, EditAnywhere)
