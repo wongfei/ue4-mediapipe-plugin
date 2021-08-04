@@ -30,13 +30,13 @@ struct FMediaPipeLandmark
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
-	FVector Pos;
+	FVector Pos = {0, 0, 0};
 
 	UPROPERTY(BlueprintReadOnly)
-	float Visibility;
+	float Visibility = 0;
 
 	UPROPERTY(BlueprintReadOnly)
-	float Presence;
+	float Presence = 0;
 };
 
 UCLASS(ClassGroup="MediaPipe", meta=(BlueprintSpawnableComponent))

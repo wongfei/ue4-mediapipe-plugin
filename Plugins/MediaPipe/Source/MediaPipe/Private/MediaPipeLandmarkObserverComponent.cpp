@@ -15,12 +15,24 @@ UMediaPipeLandmarkObserverComponent::UMediaPipeLandmarkObserverComponent()
 
 struct LandmarkParser
 {
+	float MinVisibility = 0;
+	float MinPresence = 0;
+	int AxisX = 0;
+	int AxisY = 1;
+	int AxisZ = 2;
+	FVector WorldScale = {1, 1, 1};
+
 	template<typename TLandmark>
 	void ParseLandmark(const TLandmark& Src, FMediaPipeLandmark& Dst)
 	{
-		Dst.Pos = FVector(Src.x(), Src.y(), Src.z());
 		Dst.Visibility = Src.visibility();
 		Dst.Presence = Src.presence();
+
+		if (Dst.Visibility >= MinVisibility && Dst.Presence >= MinPresence)
+		{
+			auto Pos = FVector(Src.x(), Src.y(), Src.z());
+			Dst.Pos = Scale3D(ShuffleAxes(Pos, (int)AxisX, (int)AxisY, (int)AxisZ), WorldScale);
+		}
 	}
 
 	template<typename TList>
@@ -51,7 +63,7 @@ struct LandmarkParser
 };
 
 template<typename TList>
-void Parse(IUmpObserver* Observer, TArray<FMediaPipeLandmarkList>& MultiLandmarks, int& Count)
+void Parse(LandmarkParser& Parser, IUmpObserver* Observer, TArray<FMediaPipeLandmarkList>& MultiLandmarks, int& Count)
 {
 	if (!UmpCompareType<TList>(Observer))
 	{
@@ -60,24 +72,31 @@ void Parse(IUmpObserver* Observer, TArray<FMediaPipeLandmarkList>& MultiLandmark
 	}
 
 	const auto& Message = UmpCastPacket<TList>(Observer->GetData());
-
-	LandmarkParser Parser;
 	Parser.Parse(Message, MultiLandmarks, Count);
 }
 
 // WARNING: executed in MediaPipe thread context!
 void UMediaPipeLandmarkObserverComponent::OnUmpPacket(IUmpObserver* Observer)
 {
+	LandmarkParser Parser;
+	Parser.MinVisibility = MinVisibility;
+	Parser.MinPresence = MinPresence;
+	Parser.AxisX = (int)AxisX;
+	Parser.AxisY = (int)AxisY;
+	Parser.AxisZ = (int)AxisZ;
+	Parser.WorldScale = WorldScale;
+
 	int InCount = 0;
 	switch (LandmarkListType)
 	{
-		case EMediaPipeLandmarkListType::LandmarkList:					Parse<mediapipe::LandmarkList>(Observer, MultiLandmarks, InCount); break;
-		case EMediaPipeLandmarkListType::NormalizedLandmarkList:		Parse<mediapipe::NormalizedLandmarkList>(Observer, MultiLandmarks, InCount); break;
-		case EMediaPipeLandmarkListType::MultiLandmarkList:				Parse<std::vector<mediapipe::LandmarkList>>(Observer, MultiLandmarks, InCount); break;
-		case EMediaPipeLandmarkListType::MultiNormalizedLandmarkList:	Parse<std::vector<mediapipe::NormalizedLandmarkList>>(Observer, MultiLandmarks, InCount); break;
+		case EMediaPipeLandmarkListType::LandmarkList:					Parse<mediapipe::LandmarkList>(Parser, Observer, MultiLandmarks, InCount); break;
+		case EMediaPipeLandmarkListType::NormalizedLandmarkList:		Parse<mediapipe::NormalizedLandmarkList>(Parser, Observer, MultiLandmarks, InCount); break;
+		case EMediaPipeLandmarkListType::MultiLandmarkList:				Parse<std::vector<mediapipe::LandmarkList>>(Parser, Observer, MultiLandmarks, InCount); break;
+		case EMediaPipeLandmarkListType::MultiNormalizedLandmarkList:	Parse<std::vector<mediapipe::NormalizedLandmarkList>>(Parser, Observer, MultiLandmarks, InCount); break;
 		default: check(false); break;
 	}
 
+	#if 0
 	// convert coordinate system
 	for (int i = 0; i < InCount; ++i)
 	{
@@ -90,6 +109,7 @@ void UMediaPipeLandmarkObserverComponent::OnUmpPacket(IUmpObserver* Observer)
 			L.Pos = Scale3D(ShuffleAxes(L.Pos, (int)AxisX, (int)AxisY, (int)AxisZ), WorldScale);
 		}
 	}
+	#endif
 
 	NumDetections = InCount;
 	UpdateTimestamp();
