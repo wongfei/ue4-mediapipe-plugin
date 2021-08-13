@@ -1,0 +1,103 @@
+input_stream: "input_video"
+output_stream: "output_video"
+
+output_stream: "objectron_landmarks"
+output_stream: "objectron_rects"
+
+### CONFIG ###
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:max_num_objects"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { int_value: 5 }
+    }
+  }
+}
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:landmark_model_path"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { string_value: "mediapipe/modules/objectron/object_detection_3d_cup.tflite" }
+    }
+  }
+}
+
+node {
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:allowed_labels"
+  node_options: {
+    [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
+      packet { string_value: "Mug" }
+    }
+  }
+}
+
+####
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:input_image_size"
+}
+
+# Decodes an input video file into images and a video header.
+#node {
+#  calculator: "OpenCvVideoDecoderCalculator"
+#  input_side_packet: "INPUT_FILE_PATH:input_video_path"
+#  output_stream: "VIDEO:input_video"
+#  output_stream: "VIDEO_PRESTREAM:input_video_header"
+#}
+
+node {
+  calculator: "ObjectronCpuSubgraph"
+  input_stream: "IMAGE:throttled_input_video"
+  input_side_packet: "MODEL_PATH:landmark_model_path"
+  input_side_packet: "LABELS_CSV:allowed_labels"
+  input_side_packet: "MAX_NUM_OBJECTS:max_num_objects"
+  output_stream: "MULTI_LANDMARKS:objectron_landmarks"
+  output_stream: "NORM_RECTS:objectron_rects"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:objectron_landmarks"
+  output_stream: "PRESENCE:objectron_landmarks_presence"
+}
+
+node {
+  calculator: "RendererSubgraph"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "MULTI_LANDMARKS:objectron_landmarks"
+  input_stream: "NORM_RECTS:objectron_rects"
+  output_stream: "IMAGE:output_video"
+}
+
+# Encodes the annotated images into a video file, adopting properties specified
+# in the input video header, e.g., video framerate.
+#node {
+#  calculator: "OpenCvVideoEncoderCalculator"
+#  input_stream: "VIDEO:output_video"
+#  input_stream: "VIDEO_PRESTREAM:input_video_header"
+#  input_side_packet: "OUTPUT_FILE_PATH:output_video_path"
+#  node_options: {
+#    [type.googleapis.com/mediapipe.OpenCvVideoEncoderCalculatorOptions]: {
+#      codec: "avc1"
+#      video_format: "mp4"
+#    }
+#  }
+#}

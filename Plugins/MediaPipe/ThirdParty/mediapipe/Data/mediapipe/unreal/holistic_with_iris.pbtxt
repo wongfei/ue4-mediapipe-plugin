@@ -1,0 +1,192 @@
+
+input_stream: "input_video"
+output_stream: "output_video"
+
+output_stream: "POSE_LANDMARKS:pose_landmarks"
+output_stream: "WORLD_LANDMARKS:pose_world_landmarks"
+output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+output_stream: "FACE_LANDMARKS:face_landmarks"
+output_stream: "IRIS_LANDMARKS:face_landmarks_with_iris"
+
+## INPUT ##
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+  node_options: {
+    [type.googleapis.com/mediapipe.FlowLimiterCalculatorOptions] {
+      max_in_flight: 1
+      max_in_queue: 1
+      # Timeout is disabled (set to 0) as first frame processing can take more
+      # than 1 second.
+      in_flight_timeout: 0
+    }
+  }
+}
+
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "SIZE:image_size"
+}
+
+## HOLISTIC ##
+
+node {
+  calculator: "HolisticLandmarkCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "POSE_LANDMARKS:pose_landmarks"
+  output_stream: "WORLD_LANDMARKS:pose_world_landmarks"
+  output_stream: "POSE_ROI:pose_roi"
+  output_stream: "POSE_DETECTION:pose_detection"
+  output_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+  output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:pose_landmarks"
+  output_stream: "PRESENCE:pose_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:face_landmarks"
+  output_stream: "PRESENCE:face_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:left_hand_landmarks"
+  output_stream: "PRESENCE:left_hand_landmarks_presence"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:right_hand_landmarks"
+  output_stream: "PRESENCE:right_hand_landmarks_presence"
+}
+
+node {
+  calculator: "HolisticTrackingToRenderData"
+  input_stream: "IMAGE_SIZE:image_size"
+  input_stream: "POSE_LANDMARKS:pose_landmarks"
+  input_stream: "POSE_ROI:pose_roi"
+  input_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
+  input_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+  input_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "RENDER_DATA_VECTOR:render_data_vector"
+}
+
+node {
+  calculator: "AnnotationOverlayCalculator"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "VECTOR:render_data_vector"
+  output_stream: "IMAGE:output_video_holistic"
+}
+
+## IRIS ##
+
+node {
+  calculator: "FaceLandmarksFromPoseToRecropRoi"
+  input_stream: "FACE_LANDMARKS_FROM_POSE:face_landmarks"
+  input_stream: "IMAGE_SIZE:image_size"
+  output_stream: "ROI:face_roi_from_pose"
+}
+
+node {
+  calculator: "FaceDetectionShortRangeByRoiCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "ROI:face_roi_from_pose"
+  output_stream: "DETECTIONS:face_detections"
+}
+
+node {
+  calculator: "SplitNormalizedLandmarkListCalculator"
+  input_stream: "face_landmarks"
+  output_stream: "left_eye_boundary_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 33 end: 34 }
+      ranges: { begin: 133 end: 134 }
+      combine_outputs: true
+    }
+  }
+}
+
+node {
+  calculator: "SplitNormalizedLandmarkListCalculator"
+  input_stream: "face_landmarks"
+  output_stream: "right_eye_boundary_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.SplitVectorCalculatorOptions] {
+      ranges: { begin: 362 end: 363 }
+      ranges: { begin: 263 end: 264 }
+      combine_outputs: true
+    }
+  }
+}
+
+node {
+  calculator: "IrisLandmarkLeftAndRightCpu"
+  input_stream: "IMAGE:input_video"
+  input_stream: "LEFT_EYE_BOUNDARY_LANDMARKS:left_eye_boundary_landmarks"
+  input_stream: "RIGHT_EYE_BOUNDARY_LANDMARKS:right_eye_boundary_landmarks"
+  output_stream: "LEFT_EYE_CONTOUR_LANDMARKS:left_eye_contour_landmarks"
+  output_stream: "LEFT_EYE_IRIS_LANDMARKS:left_iris_landmarks"
+  output_stream: "LEFT_EYE_ROI:left_eye_rect_from_landmarks"
+  output_stream: "RIGHT_EYE_CONTOUR_LANDMARKS:right_eye_contour_landmarks"
+  output_stream: "RIGHT_EYE_IRIS_LANDMARKS:right_iris_landmarks"
+  output_stream: "RIGHT_EYE_ROI:right_eye_rect_from_landmarks"
+}
+
+node {
+  calculator: "ConcatenateNormalizedLandmarkListCalculator"
+  input_stream: "left_eye_contour_landmarks"
+  input_stream: "right_eye_contour_landmarks"
+  output_stream: "refined_eye_landmarks"
+}
+
+node {
+  calculator: "UpdateFaceLandmarksCalculator"
+  input_stream: "NEW_EYE_LANDMARKS:refined_eye_landmarks"
+  input_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "UPDATED_FACE_LANDMARKS:updated_face_landmarks"
+}
+
+node {
+  calculator: "IrisRendererCpu"
+  input_stream: "IMAGE:output_video_holistic"
+  input_stream: "FACE_LANDMARKS:updated_face_landmarks"
+  input_stream: "EYE_LANDMARKS_LEFT:left_eye_contour_landmarks"
+  input_stream: "EYE_LANDMARKS_RIGHT:right_eye_contour_landmarks"
+  input_stream: "IRIS_LANDMARKS_LEFT:left_iris_landmarks"
+  input_stream: "IRIS_LANDMARKS_RIGHT:right_iris_landmarks"
+  input_stream: "NORM_RECT:face_roi_from_pose"
+  input_stream: "LEFT_EYE_RECT:left_eye_rect_from_landmarks"
+  input_stream: "RIGHT_EYE_RECT:right_eye_rect_from_landmarks"
+  input_stream: "DETECTIONS:face_detections"
+  output_stream: "IRIS_LANDMARKS:iris_landmarks"
+  output_stream: "IMAGE:output_video"
+}
+
+node {
+  calculator: "ConcatenateNormalizedLandmarkListCalculator"
+  input_stream: "updated_face_landmarks"
+  input_stream: "iris_landmarks"
+  output_stream: "face_landmarks_with_iris"
+}
+
+node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:face_landmarks_with_iris"
+  output_stream: "PRESENCE:face_landmarks_with_iris_presence"
+}
