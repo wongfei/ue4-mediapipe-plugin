@@ -8,7 +8,7 @@
 UMediaPipePipelineComponent::UMediaPipePipelineComponent()
 {
 	//PLUGIN_LOG_INFO(TEXT("+UMediaPipePipelineComponent %p"), this);
-	//PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = true;
 	bWantsInitializeComponent = true;
 }
 
@@ -43,6 +43,12 @@ void UMediaPipePipelineComponent::UninitializeComponent()
 void UMediaPipePipelineComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Impl)
+	{
+		LastFrameId = (int)Impl->GetLastFrameId();
+		LastFrameTimestamp = (float)Impl->GetLastFrameTimestamp();
+	}
 }
 
 bool UMediaPipePipelineComponent::CreatePipeline()
@@ -164,4 +170,6 @@ void UMediaPipePipelineComponent::Stop()
 		Impl->Stop();
 		IsPipelineRunning = false;
 	}
+	if (Impl)
+		Impl->LogProfilerStats();
 }

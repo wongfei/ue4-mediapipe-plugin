@@ -63,6 +63,14 @@ public:
 	UPROPERTY(Category="MediaPipe|Utils", BlueprintReadWrite, EditAnywhere)
 	bool bEnableOverlay;
 
+	// Stats
+
+	UPROPERTY(Category="MediaPipe|Stats", BlueprintReadOnly)
+	int LastFrameId = 0;
+
+	UPROPERTY(Category="MediaPipe|Stats", BlueprintReadOnly)
+	float LastFrameTimestamp = 0;
+
 	// Methods
 
 	UFUNCTION(Category="MediaPipe", BlueprintCallable)

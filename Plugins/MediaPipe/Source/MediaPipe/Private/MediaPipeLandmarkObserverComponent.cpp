@@ -96,21 +96,6 @@ void UMediaPipeLandmarkObserverComponent::OnUmpPacket(IUmpObserver* Observer)
 		default: check(false); break;
 	}
 
-	#if 0
-	// convert coordinate system
-	for (int i = 0; i < InCount; ++i)
-	{
-		auto& Object = MultiLandmarks[i];
-		const int LandmarkCount = Object.Num();
-
-		for (int j = 0; j < LandmarkCount; ++j)
-		{
-			auto& L = Object[j];
-			L.Pos = Scale3D(ShuffleAxes(L.Pos, (int)AxisX, (int)AxisY, (int)AxisZ), WorldScale);
-		}
-	}
-	#endif
-
 	NumDetections = InCount;
 	UpdateTimestamp();
 }

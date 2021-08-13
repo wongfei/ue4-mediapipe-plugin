@@ -48,8 +48,13 @@ public:
 	virtual void SetLog(IUmpLog* log) = 0;
 	virtual void SetResourceDir(const char* resource_dir) = 0;
 	virtual class IUmpPipeline* CreatePipeline() = 0;
-	virtual void LogProfilerStats() = 0;
 };
+
+extern "C"
+{
+	IUmpContext* UmpCreateContext();
+	typedef IUmpContext* UmpCreateContext_Proto();
+}
 
 //
 // Pipeline
@@ -65,13 +70,12 @@ public:
 	virtual class IUmpObserver* CreateObserver(const char* stream_name) = 0;
 	virtual bool Start() = 0;
 	virtual void Stop() = 0;
-};
 
-extern "C"
-{
-	IUmpContext* UmpCreateContext();
-	typedef IUmpContext* UmpCreateContext_Proto();
-}
+	// debug
+	virtual void LogProfilerStats() = 0;
+	virtual uint64_t GetLastFrameId() = 0;
+	virtual double GetLastFrameTimestamp() = 0;
+};
 
 //
 // Observer
