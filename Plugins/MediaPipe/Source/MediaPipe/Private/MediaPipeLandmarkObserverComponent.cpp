@@ -123,6 +123,30 @@ const FMediaPipeLandmark& UMediaPipeLandmarkObserverComponent::GetLandmark(int O
 	return Dummy;
 }
 
+bool UMediaPipeLandmarkObserverComponent::TryGetLandmarkList(int ObjectId, TArray<FMediaPipeLandmark>& LandmarkList)
+{
+	if (ObjectId >= 0 && ObjectId < NumDetections)
+	{
+		LandmarkList = MultiLandmarks[ObjectId];
+		return true;
+	}
+	return false;
+}
+
+bool UMediaPipeLandmarkObserverComponent::TryGetLandmark(int ObjectId, int LandmarkId, FMediaPipeLandmark& Landmark)
+{
+	if (ObjectId >= 0 && ObjectId < NumDetections)
+	{
+		const auto& List = MultiLandmarks[ObjectId];
+		if (LandmarkId >= 0 && LandmarkId < List.Num())
+		{
+			Landmark = List[LandmarkId];
+			return true;
+		}
+	}
+	return false;
+}
+
 void UMediaPipeLandmarkObserverComponent::DrawDebugLandmarks(int ObjectId, const FTransform& Transform, float PrimitiveScale, FLinearColor Color)
 {
 	#if ENABLE_DRAW_DEBUG

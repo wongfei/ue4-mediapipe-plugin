@@ -78,6 +78,12 @@ public:
 	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
 	const FMediaPipeLandmark& GetLandmark(int ObjectId, int LandmarkId);
 
+	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
+	bool TryGetLandmarkList(int ObjectId, TArray<FMediaPipeLandmark>& LandmarkList);
+
+	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
+	bool TryGetLandmark(int ObjectId, int LandmarkId, FMediaPipeLandmark& Landmark);
+
 	// Utils
 
 	UFUNCTION(Category="MediaPipe", BlueprintCallable)

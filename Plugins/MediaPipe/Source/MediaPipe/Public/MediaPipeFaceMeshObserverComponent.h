@@ -58,6 +58,15 @@ public:
 	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
 	const FMediaPipeVertex& GetMeshVertex(int MeshId, int VertexId);
 
+	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
+	bool TryGetMesh(int MeshId, FMediaPipeFaceMesh& Mesh);
+
+	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
+	bool TryGetMeshPose(int MeshId, FTransform& Pose);
+
+	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
+	bool TryGetMeshVertex(int MeshId, int VertexId, FMediaPipeVertex& Vertex);
+
 	// Utils
 
 	UFUNCTION(Category="MediaPipe", BlueprintCallable)

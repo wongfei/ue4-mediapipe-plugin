@@ -164,6 +164,40 @@ const FMediaPipeVertex& UMediaPipeFaceMeshObserverComponent::GetMeshVertex(int M
 	return Dummy;
 }
 
+bool UMediaPipeFaceMeshObserverComponent::TryGetMesh(int MeshId, FMediaPipeFaceMesh& Mesh)
+{
+	if (MeshId >= 0 && MeshId < NumDetections)
+	{
+		Mesh = Meshes[MeshId];
+		return true;
+	}
+	return false;
+}
+
+bool UMediaPipeFaceMeshObserverComponent::TryGetMeshPose(int MeshId, FTransform& Pose)
+{
+	if (MeshId >= 0 && MeshId < NumDetections)
+	{
+		Pose = Meshes[MeshId].Pose;
+		return true;
+	}
+	return false;
+}
+
+bool UMediaPipeFaceMeshObserverComponent::TryGetMeshVertex(int MeshId, int VertexId, FMediaPipeVertex& Vertex)
+{
+	if (MeshId >= 0 && MeshId < NumDetections)
+	{
+		const auto& Mesh = Meshes[MeshId];
+		if (VertexId >= 0 && VertexId < Mesh.Vertices.Num())
+		{
+			Vertex = Mesh.Vertices[VertexId];
+			return true;
+		}
+	}
+	return false;
+}
+
 void UMediaPipeFaceMeshObserverComponent::DrawDebugMeshVertices(int MeshId, const FTransform& Transform, float PrimitiveScale, FLinearColor Color)
 {
 	#if ENABLE_DRAW_DEBUG
