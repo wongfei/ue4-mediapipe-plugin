@@ -3,14 +3,15 @@ input_stream: "input_video"
 output_stream: "output_video"
 
 output_stream: "POSE_LANDMARKS:pose_landmarks"
-output_stream: "FACE_LANDMARKS:face_landmarks"
+output_stream: "WORLD_LANDMARKS:pose_world_landmarks"
 output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
 output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
+output_stream: "FACE_LANDMARKS:face_landmarks"
 
 node {
   calculator: "FlowLimiterCalculator"
   input_stream: "input_video"
-  input_stream: "FINISHED:output_video"
+  input_stream: "FINISHED:pose_landmarks"
   input_stream_info: {
     tag_index: "FINISHED"
     back_edge: true

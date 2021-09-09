@@ -14,7 +14,7 @@ output_stream: "IRIS_LANDMARKS:face_landmarks_with_iris"
 node {
   calculator: "FlowLimiterCalculator"
   input_stream: "input_video"
-  input_stream: "FINISHED:output_video"
+  input_stream: "FINISHED:face_landmarks_with_iris"
   input_stream_info: {
     tag_index: "FINISHED"
     back_edge: true

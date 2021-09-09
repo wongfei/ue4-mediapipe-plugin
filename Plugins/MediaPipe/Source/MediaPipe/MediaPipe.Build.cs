@@ -37,11 +37,24 @@ public class MediaPipe : ModuleRules
 
         string BinaryOutputDir = "$(BinaryOutputDir)";
         string ThirdPartyDir = Path.Combine(ModuleDirectory, "..", "..", "ThirdParty");
-        string MPBinDir = Path.Combine(ThirdPartyDir, "mediapipe", "Binaries", BinArch);
-        string MPDataDir = Path.Combine(ThirdPartyDir, "mediapipe", "Data");
+
+        // protobuf deps
+
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
+        }
 
         PublicIncludePaths.Add(Path.Combine(ThirdPartyDir, "protobuf", "Include"));
         PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDir, "protobuf", "Lib", BinArch, "libprotobuf" + LibExt));
+
+        string ProtobufBinDir = Path.Combine(ThirdPartyDir, "protobuf", "Binaries", BinArch);
+        AddDep("libprotobuf", DllExt, ProtobufBinDir, BinaryOutputDir);
+
+        // mediapipe deps
+
+        string MPBinDir = Path.Combine(ThirdPartyDir, "mediapipe", "Binaries", BinArch);
+        string MPDataDir = Path.Combine(ThirdPartyDir, "mediapipe", "Data");
 
         AddDep("opencv_world3410", DllExt, MPBinDir, BinaryOutputDir);
         AddDep("ump_shared", DllExt, MPBinDir, BinaryOutputDir);

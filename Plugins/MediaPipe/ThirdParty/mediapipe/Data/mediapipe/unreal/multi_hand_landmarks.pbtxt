@@ -8,7 +8,7 @@ output_stream: "multi_hand_landmarks_presence"
 node {
   calculator: "FlowLimiterCalculator"
   input_stream: "input_video"
-  input_stream: "FINISHED:output_video"
+  input_stream: "FINISHED:multi_hand_landmarks"
   input_stream_info: {
     tag_index: "FINISHED"
     back_edge: true
