@@ -1,7 +1,6 @@
 #include "MediaPipeModule.h"
 #include "MediaPipeShared.h"
-
-#include "ump_api.h"
+#include "Misc/Paths.h"
 
 DEFINE_LOG_CATEGORY(LogMediaPipe);
 

@@ -78,9 +78,6 @@
 #pragma pop_macro("OPTIONAL")
 #pragma pop_macro("min")
 #pragma pop_macro("max")
-#pragma warning(default : 4125)
-#pragma warning(default : 4946)
-#pragma warning(default : 4800) 
 #endif
 
 #if defined(__clang__)

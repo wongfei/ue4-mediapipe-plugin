@@ -1,9 +1,8 @@
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeObserverComponent.h"
-
 #include "MediaPipeShared.h"
 #include "MediaPipeModule.h"
-#include "ump_api.h"
+#include "GameFramework/Actor.h"
 
 UMediaPipePipelineComponent::UMediaPipePipelineComponent()
 {

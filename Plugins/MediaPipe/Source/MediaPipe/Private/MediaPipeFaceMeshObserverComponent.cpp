@@ -1,11 +1,9 @@
 #include "MediaPipeFaceMeshObserverComponent.h"
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeShared.h"
-
-#include "ump_api.h"
-#include "mediapipe/modules/face_geometry/protos/face_geometry.pb.h"
-
 #include "DrawDebugHelpers.h"
+
+#include "mediapipe/modules/face_geometry/protos/face_geometry.pb.h"
 
 // Matrix.TransformFVector4(MP_TO_UE(V.pos));
 

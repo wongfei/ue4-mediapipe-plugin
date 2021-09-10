@@ -2,8 +2,6 @@
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeShared.h"
 
-#include "ump_api.h"
-
 UMediaPipePresenceObserverComponent::UMediaPipePresenceObserverComponent()
 {
 }

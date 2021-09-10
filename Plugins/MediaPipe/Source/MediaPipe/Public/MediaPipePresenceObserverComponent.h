@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Components/SceneComponent.h"
 #include "MediaPipeObserverComponent.h"
 #include "MediaPipePresenceObserverComponent.generated.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "MediaPipeObserverComponent.generated.h"
 
 class IMediaPipePipelineCallback

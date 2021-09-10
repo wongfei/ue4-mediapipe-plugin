@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "MediaPipePipelineComponent.generated.h"
 
 UCLASS(ClassGroup="MediaPipe", meta=(BlueprintSpawnableComponent))

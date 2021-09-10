@@ -397,8 +397,11 @@
 #pragma push_macro("max")
 #undef max
 #pragma warning(disable : 4125)
-#pragma warning(disable : 4946)
+#pragma warning(disable : 4127)
+#pragma warning(disable : 4251)
+#pragma warning(disable : 4267)
 #pragma warning(disable : 4800) 
+#pragma warning(disable : 4946)
 #endif  // _MSC_VER
 
 #if defined(__clang__)

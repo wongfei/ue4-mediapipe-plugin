@@ -1,8 +1,7 @@
 #include "MediaPipeObserverComponent.h"
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeShared.h"
-
-#include "ump_api.h"
+#include "Engine/World.h"
 
 UMediaPipeObserverComponent::UMediaPipeObserverComponent()
 {

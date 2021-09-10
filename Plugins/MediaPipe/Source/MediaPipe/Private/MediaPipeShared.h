@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ump_api.h"
 
 #define PLUGIN_NAME "MediaPipe"
 

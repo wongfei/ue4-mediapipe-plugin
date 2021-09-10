@@ -1,11 +1,9 @@
 #include "MediaPipeLandmarkObserverComponent.h"
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeShared.h"
-
-#include "ump_api.h"
-#include "mediapipe/framework/formats/landmark.pb.h"
-
 #include "DrawDebugHelpers.h"
+
+#include "mediapipe/framework/formats/landmark.pb.h"
 
 using FMediaPipeLandmarkList = TArray<FMediaPipeLandmark>;
 
