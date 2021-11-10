@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "ump_api.h"
+#include <typeinfo>
 
 #define PLUGIN_NAME "MediaPipe"
 

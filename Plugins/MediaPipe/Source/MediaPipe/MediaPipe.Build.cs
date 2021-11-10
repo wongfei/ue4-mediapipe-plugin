@@ -5,7 +5,8 @@ public class MediaPipe : ModuleRules
 {
     public MediaPipe(ReadOnlyTargetRules Target) : base(Target)
     {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PCHUsage = PCHUsageMode.NoPCHs; // UseExplicitOrSharedPCHs;
+        bUseUnity = false;
         bUseRTTI = true;
 
         PublicDependencyModuleNames.AddRange(

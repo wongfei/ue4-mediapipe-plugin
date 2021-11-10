@@ -2,6 +2,10 @@
 #include "MediaPipeShared.h"
 #include "Misc/Paths.h"
 
+#if PLATFORM_WINDOWS
+#include "Windows/WindowsPlatformProcess.h"
+#endif
+
 DEFINE_LOG_CATEGORY(LogMediaPipe);
 
 IMPLEMENT_MODULE(FMediaPipeModule, MediaPipe)
