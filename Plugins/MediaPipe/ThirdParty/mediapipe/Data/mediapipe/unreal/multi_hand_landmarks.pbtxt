@@ -4,6 +4,8 @@ output_stream: "output_video"
 
 output_stream: "multi_hand_landmarks"
 output_stream: "multi_hand_landmarks_presence"
+output_stream: "multi_handedness"
+output_stream: "multi_handedness_presence"
 
 node {
   calculator: "FlowLimiterCalculator"
@@ -37,7 +39,7 @@ node {
   input_stream: "IMAGE:throttled_input_video"
   input_side_packet: "NUM_HANDS:num_hands"
   output_stream: "LANDMARKS:multi_hand_landmarks"
-  output_stream: "HANDEDNESS:handedness"
+  output_stream: "HANDEDNESS:multi_handedness"
   output_stream: "PALM_DETECTIONS:multi_palm_detections"
   output_stream: "HAND_ROIS_FROM_LANDMARKS:multi_hand_rects"
   output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:multi_palm_rects"
@@ -50,11 +52,17 @@ node {
 }
 
 node {
+  calculator: "PacketPresenceCalculator"
+  input_stream: "PACKET:multi_handedness"
+  output_stream: "PRESENCE:multi_handedness_presence"
+}
+
+node {
   calculator: "HandRendererSubgraph"
   input_stream: "IMAGE:throttled_input_video"
   input_stream: "DETECTIONS:multi_palm_detections"
   input_stream: "LANDMARKS:multi_hand_landmarks"
-  input_stream: "HANDEDNESS:handedness"
+  input_stream: "HANDEDNESS:multi_handedness"
   input_stream: "NORM_RECTS:0:multi_palm_rects"
   input_stream: "NORM_RECTS:1:multi_hand_rects"
   output_stream: "IMAGE:output_video"
