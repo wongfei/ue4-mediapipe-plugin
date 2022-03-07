@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ump_api.h"
 #include "Components/ActorComponent.h"
 #include "MediaPipeObserverComponent.generated.h"
 
@@ -10,18 +11,11 @@ public:
 	virtual void OnPipelineStopping(class IUmpPipeline* Pipeline) = 0;
 };
 
-class IMediaPipePacketCallback // IUmpPacketCallback
-{
-public:
-	virtual void OnUmpPresence(class IUmpObserver* observer, bool present) = 0;
-	virtual void OnUmpPacket(class IUmpObserver* observer) = 0;
-};
-
 UCLASS(ClassGroup="MediaPipe")
 class MEDIAPIPE_API UMediaPipeObserverComponent : 
 	public UActorComponent, 
 	public IMediaPipePipelineCallback, 
-	public IMediaPipePacketCallback
+	public IUmpPacketCallback
 {
 	GENERATED_BODY()
 

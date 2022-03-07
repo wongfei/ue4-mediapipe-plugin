@@ -26,7 +26,7 @@ void UMediaPipeObserverComponent::OnPipelineStarting(IUmpPipeline* Pipeline)
 		return;
 	}
 
-	Impl->SetPacketCallback((IUmpPacketCallback*)static_cast<IMediaPipePacketCallback*>(this));
+	Impl->SetPacketCallback(static_cast<IUmpPacketCallback*>(this));
 }
 
 void UMediaPipeObserverComponent::OnPipelineStopping(IUmpPipeline* Pipeline)

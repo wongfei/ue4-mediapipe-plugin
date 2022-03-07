@@ -1,10 +1,17 @@
 #pragma once
 
+#include "ump_api.h"
 #include "Components/ActorComponent.h"
+#include "DynamicTexture.h"
 #include "MediaPipePipelineComponent.generated.h"
 
+class FDynamicTexture;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicTextureCreatedSignature, UTexture2D*, NewTexture);
+
 UCLASS(ClassGroup="MediaPipe", meta=(BlueprintSpawnableComponent))
-class MEDIAPIPE_API UMediaPipePipelineComponent : public UActorComponent
+class MEDIAPIPE_API UMediaPipePipelineComponent : 
+	public UActorComponent, 
+	public IUmpFrameCallback
 {
 	GENERATED_BODY()
 
@@ -20,6 +27,9 @@ public:
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	void UninitializeComponent() override;
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	// IMediaPipeFrameCallback
+	void OnUmpFrame(class IUmpFrame* frame) override;
 
 	// Core config
 
@@ -57,6 +67,14 @@ public:
 
 	UPROPERTY(Category="MediaPipe|Capture", BlueprintReadWrite, EditAnywhere)
 	int Fps = 0;
+
+	// Video texture
+
+	UPROPERTY(Category="MediaPipe|VideoTexture", BlueprintReadWrite, EditAnywhere)
+	bool bEnableVideoTexture;
+
+	UPROPERTY(Category="MediaPipe|VideoTexture", BlueprintAssignable)
+	FDynamicTextureCreatedSignature OnVideoTextureCreated;
 
 	// Utils config
 
@@ -98,4 +116,6 @@ protected:
 
 	UPROPERTY()
 	TArray<class UMediaPipeObserverComponent*> Observers;
+
+	TUniquePtr<FDynamicTexture> VideoTexture;
 };

@@ -17,6 +17,8 @@ public class MediaPipe : ModuleRules
                 "InputCore",
                 "Slate",
                 "SlateCore",
+                "RHI",
+                "RenderCore"
             }
         );
 

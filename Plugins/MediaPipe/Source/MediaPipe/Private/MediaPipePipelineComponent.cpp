@@ -1,19 +1,21 @@
 #include "MediaPipePipelineComponent.h"
 #include "MediaPipeObserverComponent.h"
-#include "MediaPipeShared.h"
 #include "MediaPipeModule.h"
+#include "MediaPipeShared.h"
 #include "GameFramework/Actor.h"
+#include "Async/Async.h"
 
+// const FObjectInitializer& ObjectInitializer
 UMediaPipePipelineComponent::UMediaPipePipelineComponent()
 {
-	//PLUGIN_LOG_INFO(TEXT("+UMediaPipePipelineComponent %p"), this);
+	PLUGIN_LOG_INFO(TEXT("+UMediaPipePipelineComponent %p"), this);
 	PrimaryComponentTick.bCanEverTick = true;
 	bWantsInitializeComponent = true;
 }
 
 void UMediaPipePipelineComponent::BeginDestroy()
 {
-	//PLUGIN_LOG_INFO(TEXT("~UMediaPipePipelineComponent %p"), this);
+	PLUGIN_LOG_INFO(TEXT("~UMediaPipePipelineComponent %p"), this);
 	Super::BeginDestroy();
 }
 
@@ -151,6 +153,32 @@ bool UMediaPipePipelineComponent::Start()
 		}
 	}
 
+	if (bEnableVideoTexture)
+	{
+		auto* Pipeline = this;
+
+		VideoTexture.Reset(new FDynamicTexture());
+
+		VideoTexture->FuncTextureCreated = [Pipeline](UTexture2D* Texture)
+		{
+			if (Pipeline->OnVideoTextureCreated.IsBound())
+			{
+				AsyncTask(ENamedThreads::GameThread, [Pipeline]()
+				{
+					Pipeline->OnVideoTextureCreated.Broadcast(Pipeline->VideoTexture->GetTextureObject());
+				});
+			}
+		};
+
+		VideoTexture->FuncBufferSubmitted = [](void* Handle)
+		{
+			auto* Frame = (IUmpFrame*)Handle; // see OnUmpFrame
+			Frame->Release();
+		};
+
+		Impl->SetFrameCallback(static_cast<IUmpFrameCallback*>(this)); // will trigger OnUmpFrame
+	}
+
 	for (int i = 0; i < Observers.Num(); ++i)
 		Observers[i]->OnPipelineStarting(Impl);
 
@@ -169,6 +197,39 @@ void UMediaPipePipelineComponent::Stop()
 		Impl->Stop();
 		IsPipelineRunning = false;
 	}
+	VideoTexture.Reset();
 	if (Impl)
 		Impl->LogProfilerStats();
+}
+
+void UMediaPipePipelineComponent::OnUmpFrame(IUmpFrame* InFrame)
+{
+	if (!VideoTexture)
+		return;
+
+	EPixelFormat Format;
+	switch (InFrame->GetFormat())
+	{
+		case EUmpPixelFormat::B8G8R8A8:
+			Format = PF_B8G8R8A8;
+			break;
+
+		case EUmpPixelFormat::R8G8B8A8:
+			Format = PF_R8G8B8A8;
+			break;
+
+		default:
+			// UNSUPPORTED
+			return;
+	}
+
+	FPixelBuffer Buf;
+	Buf.Handle = InFrame;
+	Buf.Data = InFrame->GetData();
+	Buf.Format = Format;
+	Buf.Pitch = InFrame->GetPitch();
+	Buf.Width = InFrame->GetWidth();
+	Buf.Height = InFrame->GetHeight();
+
+	VideoTexture->EnqueBuffer(Buf); // when done triggers VideoTexture->FuncBufferSubmitted(InFrame)
 }

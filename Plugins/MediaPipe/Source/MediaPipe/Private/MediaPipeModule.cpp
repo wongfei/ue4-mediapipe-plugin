@@ -21,7 +21,8 @@ public:
 			case EUmpVerbosity::Error: LOG_IMPL(Error, msg); break;
 			case EUmpVerbosity::Warning: LOG_IMPL(Warning, msg); break;
 			case EUmpVerbosity::Info: LOG_IMPL(Display, msg); break;
-			default: LOG_IMPL(Verbose, msg); break;
+			//default: LOG_IMPL(Verbose, msg); break;
+			default: LOG_IMPL(Display, msg); break;
 		}
 	}
 };
