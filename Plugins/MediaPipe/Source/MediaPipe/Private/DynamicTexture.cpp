@@ -2,6 +2,7 @@
 #include "TextureResource.h"
 #include "RenderUtils.h"
 #include "Async/Async.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "MediaPipeShared.h"
 
 FDynamicTexture::FDynamicTexture()
@@ -128,16 +129,22 @@ void FDynamicTexture::Resize(int InWidth, int InHeight, EPixelFormat InFormat)
 		Pitch = Width * GPixelFormats[Format].BlockBytes;
 
 		auto Context = this;
+
 		#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26)
+
+		// already in render thread context (see RenderCmd_UpdateTexture)
 		//ENQUEUE_RENDER_COMMAND(SceneDrawCompletion)([Context](FRHICommandListImmediate& RHICmdList)
 		//{
 			Context->RenderCmd_CreateTexture();
 		//});
-		#else
+
+		#else // VERSION > 4.26
+
 		AsyncTask(ENamedThreads::GameThread, [Context]()
 		{
 			Context->RenderCmd_CreateTexture();
 		});
+
 		#endif
 	}
 }
