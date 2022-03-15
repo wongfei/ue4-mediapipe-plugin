@@ -1,6 +1,8 @@
 # UE4 MediaPipe plugin
 
-Platforms: Win64
+WARNING: this project is experimental and recommended for experienced UE4 developers
+
+Platforms: UE4.26/4.27 (Windows ONLY, other will not be supported)
 
 2D features: Face, Iris, Hands, Pose, Holistic
 
@@ -8,9 +10,7 @@ Platforms: Win64
 
 Demo video: https://www.youtube.com/watch?v=_gRGjGn6FQE
 
-More details: https://github.com/google/mediapipe
-
-## Custom build howto
+## (Optional) Building the plugin and MediaPipe wrapper library
 
 ### Clone plugin
 
@@ -28,11 +28,11 @@ More details: https://github.com/google/mediapipe
 
 `bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="C:\\Python39\\python.exe" mediapipe/unreal:ump_shared`
 
-More info: `ue4-mediapipe-wrapper\mediapipe\unreal\scripts\build_shared.cmd`
+See: `ue4-mediapipe-wrapper\mediapipe\unreal\scripts\build_shared.cmd`
 
 Copy ump_shared.dll to `ue4-mediapipe-plugin\Plugins\MediaPipe\ThirdParty\mediapipe\Binaries\Win64\`
 
-More info: `ue4-mediapipe-wrapper\mediapipe\unreal\scripts\deploy.cmd`
+See: `ue4-mediapipe-wrapper\mediapipe\unreal\scripts\deploy.cmd`
 
 ### Other deps
 
@@ -40,7 +40,7 @@ Protobuf 3.11.4
 
 Copy libprotobuf.lib to `ue4-mediapipe-plugin\Plugins\MediaPipe\ThirdParty\protobuf\Lib\Win64\`
 
-OpenCV 3.4.10 with fixed CAP_MSMF (optional)
+(Optional) OpenCV 3.4.10 with fixed CAP_MSMF
 
 `git clone -b msmf_fix_3410 https://github.com/wongfei/opencv.git`
 
