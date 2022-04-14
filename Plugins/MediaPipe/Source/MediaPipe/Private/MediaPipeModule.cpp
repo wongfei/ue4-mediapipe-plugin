@@ -1,9 +1,14 @@
 #include "MediaPipeModule.h"
 #include "MediaPipeShared.h"
 #include "Misc/Paths.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 #if PLATFORM_WINDOWS
 #include "Windows/WindowsPlatformProcess.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include <windows.h>
+#include "Windows/HideWindowsPlatformTypes.h"
+#include "Hakz.h"
 #endif
 
 DEFINE_LOG_CATEGORY(LogMediaPipe);
@@ -29,6 +34,28 @@ public:
 
 static UmpLog UmpLogger;
 
+// fix deadlock in FModuleTrace::OnDllLoaded (hello EPIC?)
+void FixDeadlock()
+{
+	#if (ENGINE_MAJOR_VERSION == 5)
+
+	auto Process = GetCurrentProcess();
+	auto Pattern = CkParseByteArray("48 89 5C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 D9 48 81 EC B0 00 00 00 48 8B 05 B5 C6 B5 00");
+
+	std::vector<uint8_t*> Loc;
+	auto Status = CkFindPatternIntern<CkWildcardCC>(Process, Pattern, 0, Loc);
+
+	if (Status == 0 && Loc.size() == 1)
+	{
+		PLUGIN_LOG_INFO(TEXT("FModuleTrace::OnDllLoaded -> %p"), Loc[0]);
+		auto Fix = CkParseByteArray("C3");
+		Status = CkProtectWriteMemory(GetCurrentProcess(), Fix, Loc[0], 0);
+		PLUGIN_LOG_INFO(TEXT("WriteMemory -> %u"), (unsigned int)Status);
+	}
+
+	#endif
+}
+
 void FMediaPipeModule::StartupModule()
 {
 	PLUGIN_TRACE;
@@ -42,6 +69,8 @@ void FMediaPipeModule::StartupModule()
 	#else
 		#define UMP_LIB_EXT ".so"
 	#endif
+
+	FixDeadlock();
 
 	auto Plugin = IPluginManager::Get().FindPlugin(TEXT(PLUGIN_NAME));
 	auto PluginBaseDir = FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir());
@@ -59,7 +88,11 @@ void FMediaPipeModule::StartupModule()
 	PLUGIN_LOG_INFO(TEXT("DataDir: %s"), *DataDir);
 
 	FString LibPath = FPaths::Combine(*BinariesDir, TEXT(UMP_LIB_NAME) TEXT(UMP_LIB_EXT));
+
+	PLUGIN_LOG_INFO(TEXT("GetDllHandle: %s"), *LibPath);
 	LibUmp = FPlatformProcess::GetDllHandle(*LibPath);
+	PLUGIN_LOG_INFO(TEXT("-> %p"), LibUmp);
+
 	if (!LibUmp)
 	{
 		PLUGIN_LOG(Error, TEXT("Unable to load: %s"), *LibPath);

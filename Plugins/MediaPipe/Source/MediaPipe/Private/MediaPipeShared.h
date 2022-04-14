@@ -81,7 +81,7 @@ inline FVector ShuffleAxes(const FVector& V, int X, int Y, int Z)
 	constexpr int Id[] = {0, 1, 2, 0, 1, 2};
 	constexpr float Sign[] = {1, 1, 1, -1, -1, -1};
 
-	const float* Vptr = &V.X;
+	const auto* Vptr = &V.X;
 	FVector Out;
 	Out.X = Vptr[Id[X]] * Sign[X];
 	Out.Y = Vptr[Id[Y]] * Sign[Y];

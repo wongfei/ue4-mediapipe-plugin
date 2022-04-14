@@ -91,16 +91,27 @@ void FDynamicTexture::RenderCmd_UpdateTexture(FPixelBuffer* InBuffer)
 {
 	Resize(InBuffer->Width, InBuffer->Height, InBuffer->Format);
 
-	auto Tex = GetTextureObject();
-	if (Tex && Tex->Resource)
+	auto* Tex = GetTextureObject();
+	if (Tex)
 	{
-		RHIUpdateTexture2D(
-			Tex->Resource->GetTexture2DRHI(),
-			0,
-			FUpdateTextureRegion2D(0, 0, 0, 0, InBuffer->Width, InBuffer->Height),
-			InBuffer->Pitch,
-			(const uint8*)InBuffer->Data
-		);
+		#if (ENGINE_MAJOR_VERSION == 5)
+			#define TMP_TEX_RES Tex->GetResource()
+		#else
+			#define TMP_TEX_RES Tex->Resource
+		#endif
+
+		if (TMP_TEX_RES)
+		{
+			RHIUpdateTexture2D(
+				TMP_TEX_RES->GetTexture2DRHI(),
+				0,
+				FUpdateTextureRegion2D(0, 0, 0, 0, InBuffer->Width, InBuffer->Height),
+				InBuffer->Pitch,
+				(const uint8*)InBuffer->Data
+			);
+		}
+
+		#undef TMP_TEX_RES
 	}
 
 	if (FuncBufferSubmitted)

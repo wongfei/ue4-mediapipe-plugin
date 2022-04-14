@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "EngineVersion": "4.26.0",
+  "EngineVersion": "4.27.0",
   "VersionName": "0.1",
   "FriendlyName": "MediaPipe",
   "Description": "Unreal MediaPipe integration",
