@@ -1,8 +1,8 @@
 # UE4 MediaPipe plugin
 
-WARNING: this project is experimental and recommended for experienced UE4 developers
+WARNING: this project is experimental and recommended for experienced developers only!
 
-Platforms: UE4.26/4.27 (Windows ONLY, other will not be supported)
+Platforms: UE 4.27 / 5.0 (Windows ONLY, other will not be supported)
 
 2D features: Face, Iris, Hands, Pose, Holistic
 
