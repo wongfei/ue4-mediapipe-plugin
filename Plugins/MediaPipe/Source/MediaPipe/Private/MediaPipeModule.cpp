@@ -34,24 +34,38 @@ public:
 
 static UmpLog UmpLogger;
 
-// fix deadlock in FModuleTrace::OnDllLoaded (hello EPIC?)
+// SUPER LAME FIX for deadlock in FModuleTrace::OnDllLoaded (hello EPIC? plz don't use LdrRegisterDllNotification)
 void FixDeadlock()
 {
 	#if (ENGINE_MAJOR_VERSION == 5)
 
+	const char* Variants[] = {
+		// 5.0.0
+		"48 89 5C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 D9 48 81 EC B0 00 00 00 48 8B 05 B5 C6 B5 00", // dev editor (unrealeditor-core.dll)
+		"48 89 5C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 D9 48 81 EC B0 00 00 00 48 8B 05 CC CC CC CC 48 33 C4 48 89 45 17 4D 63 68 3C 33 C0", // dev game
+	};
+	const int NumVariants = sizeof(Variants) / sizeof(Variants[0]);
+
 	auto Process = GetCurrentProcess();
-	auto Pattern = CkParseByteArray("48 89 5C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 D9 48 81 EC B0 00 00 00 48 8B 05 B5 C6 B5 00");
 
-	std::vector<uint8_t*> Loc;
-	auto Status = CkFindPatternIntern<CkWildcardCC>(Process, Pattern, 0, Loc);
-
-	if (Status == 0 && Loc.size() == 1)
+	for (int i = 0; i < NumVariants; ++i)
 	{
-		PLUGIN_LOG_INFO(TEXT("FModuleTrace::OnDllLoaded -> %p"), Loc[0]);
-		auto Fix = CkParseByteArray("C3");
-		Status = CkProtectWriteMemory(GetCurrentProcess(), Fix, Loc[0], 0);
-		PLUGIN_LOG_INFO(TEXT("WriteMemory -> %u"), (unsigned int)Status);
+		auto Pattern = CkParseByteArray(Variants[i]);
+		std::vector<uint8_t*> Loc;
+		auto Status = CkFindPatternIntern<CkWildcardCC>(Process, Pattern, 2, Loc);
+		PLUGIN_LOG_INFO(TEXT("FindPattern Id=%d Status=%d Count=%d [%s]"), i, (int)Status, (int)Loc.size());
+
+		if (Status == 0 && Loc.size() == 1)
+		{
+			PLUGIN_LOG_INFO(TEXT("FModuleTrace::OnDllLoaded -> %p"), Loc[0]);
+			auto Fix = CkParseByteArray("C3");
+			Status = CkProtectWriteMemory(Process, Fix, Loc[0], 0);
+			PLUGIN_LOG_INFO(TEXT("WriteMemory -> %u"), (unsigned int)Status);
+			return;
+		}
 	}
+
+	PLUGIN_LOG(Warning, TEXT("FModuleTrace::OnDllLoaded NOT FOUND"));
 
 	#endif
 }
