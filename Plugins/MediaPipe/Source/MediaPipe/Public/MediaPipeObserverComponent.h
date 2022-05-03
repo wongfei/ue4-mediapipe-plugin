@@ -46,6 +46,9 @@ public:
 	UFUNCTION(Category="MediaPipe", BlueprintCallable, BlueprintPure)
 	bool HaveDetections();
 
+	int32 GetPacketCounter() const { return PacketCounter.GetValue(); }
+	void ResetPacketCounter() { PacketCounter.Reset(); }
+
 protected:
 	void UpdateTimestamp();
 
@@ -59,4 +62,5 @@ protected:
 protected:
 	class IUmpObserver* Impl = nullptr;
 	TAtomic<int> NumDetections = 0;
+	FThreadSafeCounter PacketCounter;
 };

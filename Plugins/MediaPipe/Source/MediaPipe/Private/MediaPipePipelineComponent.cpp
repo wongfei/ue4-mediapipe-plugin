@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "Async/Async.h"
 
+DECLARE_DWORD_ACCUMULATOR_STAT(TEXT("PacketCounter"), STAT_MediaPipe_PacketCounter, STATGROUP_MediaPipe);
+
 // const FObjectInitializer& ObjectInitializer
 UMediaPipePipelineComponent::UMediaPipePipelineComponent()
 {
@@ -49,6 +51,23 @@ void UMediaPipePipelineComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	{
 		LastFrameId = (int)Impl->GetLastFrameId();
 		LastFrameTimestamp = (float)Impl->GetLastFrameTimestamp();
+	}
+
+	StatAccum += DeltaTime;
+	if (StatAccum >= 1.0f)
+	{
+		StatAccum -= 1.0f;
+		if (StatAccum >= 1.0f)
+			StatAccum = 0;
+		
+		int32 Count = 0;
+		for (auto* Iter : Observers)
+		{
+			Count += Iter->GetPacketCounter();
+			Iter->ResetPacketCounter();
+		}
+
+		SET_DWORD_STAT(STAT_MediaPipe_PacketCounter, Count);
 	}
 }
 

@@ -55,4 +55,5 @@ bool UMediaPipeObserverComponent::HaveDetections()
 void UMediaPipeObserverComponent::UpdateTimestamp()
 {
 	LastUpdate = GetWorld()->GetRealTimeSeconds();
+	PacketCounter.Increment();
 }

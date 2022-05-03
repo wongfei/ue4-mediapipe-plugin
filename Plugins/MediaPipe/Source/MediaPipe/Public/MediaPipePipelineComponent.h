@@ -5,6 +5,8 @@
 #include "DynamicTexture.h"
 #include "MediaPipePipelineComponent.generated.h"
 
+DECLARE_STATS_GROUP(TEXT("MediaPipe"), STATGROUP_MediaPipe, STATCAT_Advanced);
+
 class FDynamicTexture;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicTextureCreatedSignature, UTexture2D*, NewTexture);
 
@@ -113,6 +115,7 @@ protected:
 protected:
 	class IUmpPipeline* Impl = nullptr;
 	bool IsPipelineRunning = false;
+	float StatAccum = 0;
 
 	UPROPERTY()
 	TArray<class UMediaPipeObserverComponent*> Observers;
